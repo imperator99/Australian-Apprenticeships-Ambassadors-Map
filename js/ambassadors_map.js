@@ -93,6 +93,12 @@ jQuery(function ($) {
 						url: 'http://chart.googleapis.com/chart?chst=d_map_pin_icon&chld=glyphish_group|ffffff',
 					});
 				});
+			} else {
+				$.each(markers, function() {
+					this.setIcon({
+						url: 'http://chart.googleapis.com/chart?chst=d_map_pin_icon&chld=glyphish_user|ffffff'
+					});
+				});
 			}
 		});
 
@@ -271,7 +277,7 @@ jQuery(function ($) {
 		address = "",
 		job = "";
 		if(occupation) {
-			job += occupation;
+			job += occupation;sour
 		}
 
 		if(industry) {
@@ -319,7 +325,7 @@ jQuery(function ($) {
 			if (markerCount !== 1) {
 				pluralString = 's';
 			}
-			$('#map-feedback').html('<p>Showing <strong>' + markerCount + '</strong> Apprenticeships Ambassadors' + pluralString + '</p>').removeClass('hidden').show();
+			$('#map-feedback').html('<p>Showing <strong>' + markerCount + '</strong> Apprenticeships Ambassador' + pluralString + '</p>').removeClass('hidden').show();
 	};
 
 /**

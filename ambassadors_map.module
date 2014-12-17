@@ -120,42 +120,50 @@ function ambassadors_map_block_view($delta = '') {
 	    			)),
 	    		),
 	    	);
-			$block['content']['wrapper']['map-canvas'] = array(
+	    	$block['content']['map-wrapper'] = array(
+	    		'#type' => 'container',
+	    		'#attributes' => array(
+	    			'class' => array(
+	    				$location . '-map',
+	    			),
+	    		),
+	    	);
+			$block['content']['map-wrapper']['map-canvas'] = array(
 				'#type' => 'container',
 				'#attributes' => array(
 					'id' => array("map-canvas-" . $location),
 				),
 			);
-			$block['content']['wrapper']['map-feedback'] = array(
+			$block['content']['map-wrapper']['map-feedback'] = array(
 				'#type' => 'container',
 				'#attributes' => array(
 					'id' => 'map-feedback',
 				),
 			);
-			$block['content']['wrapper']['map-overlay'] = array(
+			$block['content']['map-wrapper']['map-overlay'] = array(
 				'#type' => 'container',
 				'#attributes' => array(
 					'id' => 'map-overlay',
 				),
 			);
-			$block['content']['wrapper']['map-message'] = array(
+			$block['content']['map-wrapper']['map-message'] = array(
 				'#type' => 'container',
 				'#attributes' => array(
 					'id' => 'map-message',
 				),
 			);
-			$block['content']['wrapper']['footer'] = array(
+			$block['content']['map-wrapper']['footer'] = array(
 				'#type' => 'container',
 				'#attributes' => array(
 					'id' => 'map-footer',
 				),
 			);
-			$block['content']['wrapper']['footer']['heading'] = array(
+			$block['content']['map-wrapper']['footer']['heading'] = array(
 				'#prefix' => '<h4>',
 				'#markup' => t('Please note:'),
 				'#suffix' => '</h4>',
 			);
-			$block['content']['wrapper']['footer']['body'] = array(
+			$block['content']['map-wrapper']['footer']['body'] = array(
 				'#theme' => 'item_list',
 				'#type' => 'ol',
 				'#items' => array(
