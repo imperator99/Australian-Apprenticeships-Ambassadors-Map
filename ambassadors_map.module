@@ -1,0 +1,342 @@
+<?php
+
+/**
+ * Implements hook_menu()
+ **/
+
+function ambassadors_map_menu() {
+	$items = array();
+	$items['admin/config/user-interface/ambassadors-map'] = array(
+	    'title' => t('Ambassadors Map Settings'),
+	    'description' => 'Settings for the Ambassadors Map.',
+	    'page callback' => 'drupal_get_form',
+	    'page arguments' => array('_ambassadors_map_admin_form'),
+	    'access arguments' => array('access ambassadors map settings form'),
+	    'type' => MENU_NORMAL_ITEM,
+	);
+	return $items;
+}
+
+/**
+ * Implements hook_permission()
+ **/
+
+function ambassadors_map_permission() {
+ return array(
+    'access ambassadors map settings form' => array(
+      'title' => t('Access Ambassadors map settings'),
+      'description' => t('Allow users to access the settings for the ambassadors map(s).'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_block_info()
+ */
+
+function ambassadors_map_block_info() {
+	$blocks['ambassadors_map'] = array(
+		'info' => t('Ambassadors Map'),
+		'cache' => DRUPAL_CACHE_PER_ROLE,
+	);
+	return $blocks;
+}
+
+/**
+ * Implements hook_block_view()
+ */
+
+function ambassadors_map_block_view($delta = '') {
+
+	// Get the URLs from the admin form.
+	$url_string = variable_get('ambassadors_map_load_js');
+	$urls = explode(',', $url_string);
+
+	switch ($delta) {
+		case 'ambassadors_map':
+
+			$location = 'ambassadors';
+
+			$ambassadors_map_settings = array(
+				'basePath' => drupal_get_path('module', 'ambassadors_map'),
+				'mapID' => 'map-canvas-ambassadors',
+			);
+
+			$block['subject'] = t('Australian Apprenticeships Ambassadors');
+
+			foreach ($urls as $url) {
+				if(trim($url) == current_path()) {
+					// Only attach the javascript if it is actually needed.
+					$block['content']['#attached']['js'] = array(
+						array(
+							'data' => array(
+								'ambassadors_map' => $ambassadors_map_settings
+							),
+							'type' => 'setting',
+						),
+						'https://maps.googleapis.com/maps/api/js?client=gme-readingroom&sensor=false' => array(
+		 	    		'type' => 'external',
+						),
+						drupal_get_path('module', 'ambassadors_map') . '/js/oms.min.js' => array(
+							'every page' => FALSE,
+						),
+						drupal_get_path('module', 'ambassadors_map') . '/js/infobox_packed.js' => array(
+							'every page' => FALSE,
+						),
+						drupal_get_path('module', 'ambassadors_map') . '/js/markerclusterer_compiled.js' => array(
+							'every page' => FALSE,
+						),
+						drupal_get_path('module', 'ambassadors_map') . '/js/ambassadors_map.js' => array(
+							'scope' => 'footer',
+							'every page' => FALSE,
+						),
+					);
+				}
+			}			
+			$block['content']['wrapper'] = array(
+				'#type' => 'container',
+				'#attributes' => array(
+					'class' => array($location . '-map'),
+				),
+			);
+			$block['content']['wrapper']['heading'] = array(
+				'#prefix' => '<h3>',
+				'#markup' => t('Inspire your audience with an Australian Apprenticeships Ambassador'),
+				'#suffix' => '</h3>',
+			);
+			$block['content']['wrapper']['body'] = array(
+				'#markup' => t('<p>Australian Apprenticeships Ambassadors provide memorable and real life perspectives of what is possible from completing an apprenticeship or traineeship.</p><p>To invite an Australian Apprenticeships Ambassador to share their success story at your event, please follow these simple steps:</p>'),
+			);
+			$block['content']['wrapper']['list'] = array(
+				'#theme' => 'item_list',
+    		'#type' => 'ol',
+    		'#items' => array(
+	      		t('Click on the icons on the interactive map to see where Australian Apprenticeships Ambassadors are located.'),
+	      		t('Click on ‘read more’ when you see a blue pop-up box to read their success story.'),
+	      		t('Click on the ‘Invite an Australian Apprenticeships Ambassador’ link at the end of the article. This will open a form to fill in, which will be sent to: <a href="@url" title="@title">Ambassadors@industry.gov.au</a>.',
+	      		array(
+	      			'@url' => url('Ambassadors@industry.gov.au'),
+	      			'@title' => t('Email Apprenticeships Ambassadors'),
+	    			)),
+	    		),
+	    	);
+			$block['content']['wrapper']['map-canvas'] = array(
+				'#type' => 'container',
+				'#attributes' => array(
+					'id' => array("map-canvas-" . $location),
+				),
+			);
+			$block['content']['wrapper']['map-feedback'] = array(
+				'#type' => 'container',
+				'#attributes' => array(
+					'id' => 'map-feedback',
+				),
+			);
+			$block['content']['wrapper']['map-overlay'] = array(
+				'#type' => 'container',
+				'#attributes' => array(
+					'id' => 'map-overlay',
+				),
+			);
+			$block['content']['wrapper']['map-message'] = array(
+				'#type' => 'container',
+				'#attributes' => array(
+					'id' => 'map-message',
+				),
+			);
+			$block['content']['wrapper']['footer'] = array(
+				'#type' => 'container',
+				'#attributes' => array(
+					'id' => 'map-footer',
+				),
+			);
+			$block['content']['wrapper']['footer']['heading'] = array(
+				'#prefix' => '<h4>',
+				'#markup' => t('Please note:'),
+				'#suffix' => '</h4>',
+			);
+			$block['content']['wrapper']['footer']['body'] = array(
+				'#theme' => 'item_list',
+				'#type' => 'ol',
+				'#items' => array(
+					t('The Department of Industry is unable to guarantee an Australian Apprenticeships Ambassador’s availability.'),
+					t('The nominated Australian Apprenticeships Ambassador has the right to accept or decline each invitation.'),
+					t('If an Australian Apprenticeships Ambassador is required to travel, the organisation sending the invitation will need to pay for all travel costs.'),
+					t('The Department of Industry reserves the right to withdraw the invitation at any time.'),
+				),
+			);
+		break;
+	}
+	return $block;
+}
+
+/**
+ * Implements hook_init()
+ */
+
+function ambassadors_map_init(){
+	// This is the controller function.
+
+	// Before Drupal loads, check the URL. If it is 'ambassadors_map_search', then initiate the search functionality.
+	if(request_path()=='ambassadors_map_search'){
+
+		// Set a minute time limit.
+		set_time_limit(3600);
+
+		// Get a search result object.
+		$search_result = _ambassadors_map_do_search();
+		
+		// Echo the $search_result object as json so it can be used by the JavaScript later on.
+		echo json_encode($search_result);
+
+		// End everything now so the theme is never loaded.
+		exit;
+	}
+}
+
+/**
+ *  This function is the core function of the module.
+ */
+
+function _ambassadors_map_do_search(){
+
+	// Set up a cache to speed things up.
+	if (variable_get('ambassadors_map_cache') === 1) {
+
+		//Create a cache object
+		$cid = 'ambassadors_map:aac_nodes_all';
+
+		// Check if there is anything in the cache.
+		if ($cached = cache_get($cid)) {
+
+			// If there is data there, return it instead of running the query.
+			return _ambassadors_map_populate_nodes($cached->data);
+		}
+	}
+
+	// Set up the SQL query text.
+	$sql = "SELECT node.nid, field_data_field_remove_map.field_remove_map_value FROM {node}, field_data_field_remove_map WHERE node.nid = field_data_field_remove_map.entity_id AND field_data_field_remove_map.field_remove_map_value = 0";
+	//$sql = "SELECT nid FROM {node} WHERE type = 'australian_apprenticeships_ambas' AND status = 1 ORDER BY title";
+
+	// Set the $result variable to the results of the db_query function, using the $sql string.
+	$results = db_query($sql)->fetchAll();
+
+	// If the cache is being used, set the cache to the new data.
+	if (variable_get('ambassadors_map_cache') === 1) {
+		cache_set($cid, $results, 'cache', strtotime('+1 day'));
+	}
+	// Return the $results array, passing it through the _ambassadors_map_populate_nodes function.
+	return _ambassadors_map_populate_nodes($results);
+}
+
+function _ambassadors_map_administrative_area($abbrv){
+	// This function converts the states from the database on the $node object into fully-qualified names which Google requires.
+
+	$administrative_area = array(
+		"ACT" => "Australian Capital Territory",
+		"NSW" => "New South Wales",
+		"NT"  => "Northern Territory",
+		"QLD" => "Queensland",
+		"SA"  => "South Australia",
+		"TAS" => "Tasmania",
+		"VIC" => "Victoria",
+		"WA"  => "Western Australia",	
+	);
+	$abbrv = strtoupper($abbrv);
+	return $administrative_area[$abbrv];
+}
+
+function _ambassadors_map_populate_nodes($results){
+	// This function loads all the nodes by the nid passed through the $results array.
+	$map_objects = array();
+
+	foreach ($results as $result) {
+
+		// Create a map object to hold only the relevant data.
+		$map_object = array();
+
+		// Build the alias of each node.
+		$alias = drupal_get_path_alias('node/'.$result->nid);
+
+		// Load each node using the nid. $node is now the full $node object.
+		$node = node_load($result->nid);
+
+		// Add only the data we need to each map object. This also makes the other code a lot less complex.
+		
+		// Get the nid.
+		$map_object['nid'] = $node->nid;
+
+		// Add the alias.
+		$map_object['alias'] = $alias;
+
+		//Check if there is a name.
+		if(isset($node->field_ambassador_name)) {
+			$name = field_get_items('node', $node, 'field_ambassador_name');
+			$map_object['title'] = $name[0]['safe_value'];
+		}
+
+		// Check if there is an industry.
+		$industry = field_get_items('node', $node, 'field_ambassadors_industry');
+		if ($industry) {
+			$map_object['industry'] = taxonomy_term_load($industry[0]['tid'])->name;
+		} else {
+			$map_object['industry'] = NULL;
+		}
+
+		// Check if there is an occupation.
+		$occupation = field_get_items('node', $node, 'field_tags');
+		if ($occupation) {
+			$map_object['occupation'] = taxonomy_term_load($occupation[0]['tid'])->name;	
+		} else {
+			$map_object['occupation'] = NULL;
+		}
+
+		// Get the address details.
+		$address = field_get_items('node', $node, 'field_ambassadors_address');
+		$map_object['city'] = $address[0]['locality'];
+		$map_object['state'] = $address[0]['administrative_area'];
+
+		// Get the image
+		$image = field_get_items('node', $node, 'field_preview_image');
+		$map_object['image'] = file_create_url($image[0]['uri']);
+
+		// Make sure there is geo data attached to the node. If not, then we'll throw this object away later.
+		$geo = field_get_items('node', $node, 'field_geofield');
+		if ($geo) {
+			$map_object['geo'] = $geo[0];
+		}
+		
+		// As long as the administrative area (state) isn't empty, convert it from the abbreviation to the name.
+		if(!empty($map_object['state'])){
+			$map_object['state'] = _ambassadors_map_administrative_area($map_object['state']);	
+		}
+
+		// If the map object has geo data, add it to the $map_objects array, if not, it gets destroyed.
+		if (isset($map_object['geo'])) {
+			$map_objects[] = $map_object;
+		}
+	}
+	// Replace the contents of the $results array (which is just nids) with the contents of the $map_objects array.
+	$results = $map_objects;
+	// Send the results back to the controller function to be displayed as JSON.
+	return $results;
+}
+
+function _ambassadors_map_admin_form() {
+	$form = array();
+
+	$form['ambassadors_map_load_js'] = array(
+		'#type' => 'textarea',
+		'#title' => 'Pages to load JavaScript',
+		'#default_value' => variable_get('ambassadors_map_load_js',''),
+		'#description' => t('Enter the relative paths of the pages you would like the map blocks to appear, separated by a comma. This will ensure that the javascript is only loaded on those pages. Note that scripts will always load on the home page.'),
+		'#required' => TRUE,
+	);
+	$form['ambassadors_map_cache'] = array(
+		'#type' => 'checkbox',
+		'#title' => 'Cache database queries?',
+		'#default_value' => variable_get('ambassadors_map_cache',''),
+		'#description' => t('Caching the database results can speed things up substantially.'),
+	);
+  return system_settings_form($form);
+}

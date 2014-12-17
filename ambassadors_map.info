@@ -1,0 +1,5 @@
+name = "Ambassadors Map"
+description = "Map search function. Need to work with Jquery Update module, enable jQuery Version 1.7"
+core = "7.x"
+package = "Other"
+dependencies[] = jquery_update
