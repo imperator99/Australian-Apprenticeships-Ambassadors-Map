@@ -277,7 +277,7 @@ jQuery(function ($) {
 		address = "",
 		job = "";
 		if(occupation) {
-			job += occupation;sour
+			job += occupation + ' - ';
 		}
 
 		if(industry) {
